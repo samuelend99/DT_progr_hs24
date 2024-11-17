@@ -2,7 +2,7 @@ import requests
 
 # API-Konfiguration
 API_BASE_URL = "https://my.clockodo.com/api/v2"
-API_TOKEN = "88a26692bf448413a8258f8f9e8299de"  # Clockodo API-Schlüssel
+API_TOKEN = "xyz"  # Clockodo API-Schlüssel
 API_USER = "se@hochbauatelier.ch"  # E-Mail deines Clockodo-Accounts
 APPLICATION_NAME = "Zeitmanagment"  # Name der Anwendung
 
