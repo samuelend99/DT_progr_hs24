@@ -1,10 +1,10 @@
 import requests
+from my_secret import API_TOKEN  # Import des Tokens
 
 # API-Konfiguration
 API_BASE_URL = "https://my.clockodo.com/api/v2"
-API_TOKEN = "xyz"  # Clockodo API-Schlüssel
-API_USER = "se@hochbauatelier.ch"  # E-Mail deines Clockodo-Accounts
-APPLICATION_NAME = "Zeitmanagment"  # Name der Anwendung
+API_USER = "se@hochbauatelier.ch"  # E-Mail Clockodo-Accounts
+APPLICATION_NAME = "Zeitmanagement"  # Name der Anwendung
 
 def get_projects():
     """
@@ -12,27 +12,26 @@ def get_projects():
     """
     headers = {
         "X-ClockodoApiUser": API_USER,  # E-Mail-Adresse
-        "X-ClockodoApiKey": API_TOKEN,  # API-Token
+        "X-ClockodoApiKey": API_TOKEN,  # API-Token aus my_secret importiert
         "X-Clockodo-External-Application": APPLICATION_NAME,  # Name der externen Anwendung
         "Content-Type": "application/json"  # JSON-Format
     }
     
     try:
-        response = requests.get(f"{API_BASE_URL}/customers", headers=headers)
+        # Endpunkt für Projekte
+        response = requests.get(f"{API_BASE_URL}/projects", headers=headers)
         if response.status_code == 200:
             print("Projekte erfolgreich abgerufen.")
-            return response.json()["customers"]
+            return response.json()["projects"]
         else:
             print(f"Fehler beim Abrufen der Projekte: {response.status_code} - {response.text}")
             return []
-    except Exception as e:
-        print(f"Ein Fehler ist aufgetreten: {e}")
+    except requests.exceptions.RequestException as e:
+        print(f"Ein Fehler ist bei der API-Anfrage aufgetreten: {e}")
         return []
 
+# Testaufruf
 if __name__ == "__main__":
     projects = get_projects()
-    if projects:
-        for project in projects:
-            print(f"Projektname: {project['name']}, ID: {project['id']}")
-    else:
-        print("Keine Projekte gefunden.")
+    for project in projects:
+        print(f"Projekt-ID: {project['id']}, Name: {project['name']}")
