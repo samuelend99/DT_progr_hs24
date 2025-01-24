@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 import plotly.express as px
-from main import get_projects, get_time_entries, get_services, convert_seconds_to_hours, load_all_project_budgets
+from main import get_projects, get_time_entries, get_services, load_all_project_budgets
 
 def set_sidebar_style():
     st.markdown(
@@ -23,21 +23,38 @@ def format_hours_and_minutes(hours):
     return f"{h}h {m}m"
 
 # Funktion für die Farbgebung
-# Funktion für die Farbgebung
-def color_remaining_hours(val):
+
+def color_remaining_hours(val, total_hours):
+    """
+    Funktion zur Einfärbung basierend auf verbleibenden Stunden in Prozent.
+
+    :param val: Verbleibende Stunden im Format "Xh Ym".
+    :param total_hours: Gesamtstunden als Referenzwert.
+    :return: CSS-Style-String zur Hintergrundfarbe.
+    """
     if isinstance(val, str) and 'h' in val:  # Umrechnung von "Xh Ym" zurück in float
         h, m = map(int, val.replace('h', '').replace('m', '').split())
         val = h + m / 60
 
-    if val == 0:  # Bedingung für "0h 0m"
-        return 'background-color: white'  # Weißer Hintergrund
-    elif val > 15:
-        return 'background-color: green'  # Grüner Hintergrund
-    elif 0 < val <= 15:
-        return 'background-color: orange'  # Oranger Hintergrund
-    else:
-        return 'background-color: red'  # Roter Hintergrund
+    if total_hours <= 0:
+        return 'background-color: red'  # Grauer Hintergrund für ungültige Gesamtstunden
 
+    percentage = (val / total_hours) * 100  # Berechnung der verbleibenden Stunden in Prozent
+
+    if val == 0:  # Keine verbleibende Zeit
+        return 'background-color: white'  # Weißer Hintergrund
+    elif percentage > 25:  # Mehr als 25% der Stunden übrig
+        return 'background-color: green'  # Grüner Hintergrund
+    elif 10 <= percentage <= 25:  # 10-25% der Stunden übrig
+        return 'background-color: orange'  # Oranger Hintergrund
+    elif 1 < percentage < 10:  # Weniger als 10% der Stunden übrig
+        return 'background-color: red'  # Roter Hintergrund
+    else:
+        return 'background-color: red'  # Fallback für ungültige Werte
+
+def color_remaining_hours_with_total(val):
+    total_hours = 40  # Hier kannst du den Standardwert für total_hours anpassen
+    return color_remaining_hours(val, total_hours)
 
 # Funktion für die Hauptseite
 def main_page():
@@ -49,6 +66,7 @@ def main_page():
         if st.button("Übersicht"):
             st.session_state["page"] = "chart"
 
+   # Logo rechts
     col1, col2 = st.columns([9, 5])
     with col1:
         pass
@@ -114,7 +132,8 @@ def results_page():
         entries_df.rename(columns={'projects_id': 'project_id'}, inplace=True)
 
     entries_df["used_hours"] = entries_df["duration"] / 3600.0
-
+    
+    # Ruft LEistugnen von API ab und wandlet diese um
     services = get_services()
     services_df = pd.DataFrame(services)
     service_mapping = dict(zip(services_df["id"], services_df["name"]))
@@ -147,17 +166,16 @@ def results_page():
     for col in columns_to_format:
         display_df_for_display[col] = display_df_for_display[col].apply(format_hours_and_minutes)
 
-    # Tabelle anzeigen ohne Nummerierung
+  
     row_height = 38
     max_height = 800
     calculated_height = min(len(display_df_for_display) * row_height, max_height)
 
-# Index entfernen
+
     display_df_for_display.reset_index(drop=True, inplace=True)
 
-# Tabelle mit st.table anzeigen (ohne sichtbaren Index)
     st.markdown("### Stundenübersicht")
-    st.table(display_df_for_display.style.applymap(color_remaining_hours, subset=["Verbleibende Stunden"]))
+    st.table(display_df_for_display.style.applymap(color_remaining_hours_with_total, subset=["Verbleibende Stunden"]))
 
 
 

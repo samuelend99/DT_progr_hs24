@@ -3,6 +3,7 @@ import pandas as pd
 from Clockodo_Stunden_aus_Projekte import get_projects, get_time_entries, get_services, convert_seconds_to_hours
 from stundenbudget_excel import load_all_project_budgets  # Stelle sicher, dass dieses Skript richtig importiert wird
 
+
 if __name__ == "__main__":
     # Zeitraum für Zeiteinträge
     time_since = "2024-11-01"
